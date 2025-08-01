@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     
     # Audio Configuration
     max_audio_size: int = 10 * 1024 * 1024  # 10MB
-    supported_audio_formats: str = ".wav,.mp3,.m4a,.flac"
+    supported_audio_formats: str = ".wav,.mp3,.m4a,.flac,.webm,.mp4"
     audio_sample_rate: int = 16000
     audio_max_duration: float = 10.0  # seconds
     

@@ -7,7 +7,6 @@ import { TranslationData } from './types';
 
 function App() {
   const [translationData, setTranslationData] = useState<TranslationData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPersonality, setSelectedPersonality] = useState('chill');
 
@@ -21,10 +20,6 @@ function App() {
     setTranslationData(null);
   };
 
-  const handleLoading = (loading: boolean) => {
-    setIsLoading(loading);
-  };
-
   return (
     <div className="App">
       <header className="App-header">
@@ -35,11 +30,9 @@ function App() {
       <main className="App-main">
         <div className="container">
           <div className="section">
-            <h2>🎤 Record Your Cat's Meow</h2>
             <AudioRecorder 
               onTranslationComplete={handleTranslationComplete}
               onError={handleError}
-              onLoading={handleLoading}
               selectedPersonality={selectedPersonality}
             />
           </div>
@@ -51,15 +44,6 @@ function App() {
               onPersonalityChange={setSelectedPersonality}
             />
           </div>
-
-          {isLoading && (
-            <div className="section">
-              <div className="loading">
-                <div className="loading-spinner"></div>
-                <p>Processing your cat's meow... 🐱</p>
-              </div>
-            </div>
-          )}
 
           {error && (
             <div className="section">

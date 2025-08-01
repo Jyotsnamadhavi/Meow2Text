@@ -60,9 +60,18 @@ async def classify_audio(file: UploadFile = File(...)):
         HTTPException: If classification fails
     """
     try:
-        # Validate file type
-        if not file.content_type.startswith('audio/'):
-            raise ValidationError("File must be an audio file")
+        # Validate file type - be more flexible with audio content types
+        valid_audio_types = [
+            'audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/mp4', 
+            'audio/webm', 'audio/ogg', 'audio/flac', 'audio/m4a'
+        ]
+        
+        if not file.content_type or file.content_type not in valid_audio_types:
+            # Check file extension as fallback
+            file_ext = file.filename.lower().split('.')[-1] if file.filename else ''
+            valid_extensions = ['wav', 'mp3', 'm4a', 'flac', 'webm', 'mp4']
+            if file_ext not in valid_extensions:
+                raise ValidationError(f"File must be an audio file. Supported formats: {', '.join(valid_extensions)}")
         
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
@@ -107,9 +116,18 @@ async def translate_audio(
         HTTPException: If translation fails
     """
     try:
-        # Validate file type
-        if not file.content_type.startswith('audio/'):
-            raise ValidationError("File must be an audio file")
+        # Validate file type - be more flexible with audio content types
+        valid_audio_types = [
+            'audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/mp4', 
+            'audio/webm', 'audio/ogg', 'audio/flac', 'audio/m4a'
+        ]
+        
+        if not file.content_type or file.content_type not in valid_audio_types:
+            # Check file extension as fallback
+            file_ext = file.filename.lower().split('.')[-1] if file.filename else ''
+            valid_extensions = ['wav', 'mp3', 'm4a', 'flac', 'webm', 'mp4']
+            if file_ext not in valid_extensions:
+                raise ValidationError(f"File must be an audio file. Supported formats: {', '.join(valid_extensions)}")
         
         # Validate personality
         valid_personalities = ["diva", "chill", "old_man"]

@@ -48,6 +48,9 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
+        console.log('Audio blob type:', audioBlob.type);
+console.log('Audio blob size:', audioBlob.size);
+console.log('Selected personality:', selectedPersonality);
       };
 
       mediaRecorder.start();

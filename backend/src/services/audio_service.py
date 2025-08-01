@@ -4,8 +4,10 @@ Audio processing service for Meow2Text.
 import librosa
 import numpy as np
 import os
+import tempfile
 from typing import Dict, Tuple
 from pathlib import Path
+from pydub import AudioSegment
 
 from backend.src.core.exceptions import AudioProcessingError, ValidationError
 from backend.src.core.config import settings
@@ -19,6 +21,29 @@ class AudioService:
         self.max_size = settings.max_audio_size
         self.sample_rate = settings.audio_sample_rate
         self.max_duration = settings.audio_max_duration
+    
+    def _convert_audio_for_librosa(self, file_path: str) -> str:
+        """
+        Convert audio file to WAV format for librosa processing.
+        
+        Args:
+            file_path: Path to input audio file
+            
+        Returns:
+            Path to converted WAV file
+        """
+        try:
+            # Load audio with pydub
+            audio = AudioSegment.from_file(file_path)
+            
+            # Export as WAV
+            temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+            audio.export(temp_wav.name, format='wav')
+            
+            return temp_wav.name
+        except Exception as e:
+            print(f"Audio conversion failed: {str(e)}")
+            raise AudioProcessingError(f"Failed to convert audio: {str(e)}")
     
     def validate_audio_file(self, file_path: str) -> bool:
         """
@@ -48,19 +73,40 @@ class AudioService:
             if file_ext not in self.supported_formats:
                 raise ValidationError(f"Unsupported format: {file_ext}")
             
-            # Try to load audio
-            y, sr = librosa.load(file_path, sr=None, duration=1.0)
+            # Try to load audio with conversion if needed
+            converted_path = None
+            try:
+                y, sr = librosa.load(file_path, sr=None, duration=1.0)
+            except Exception as load_error:
+                print(f"Librosa load failed: {str(load_error)}")
+                # Try converting the audio file
+                try:
+                    converted_path = self._convert_audio_for_librosa(file_path)
+                    y, sr = librosa.load(converted_path, sr=None, duration=1.0)
+                    print(f"Successfully converted and loaded audio")
+                except Exception as convert_error:
+                    print(f"Audio conversion also failed: {str(convert_error)}")
+                    raise load_error
             
             # Check duration
             duration = librosa.get_duration(y=y, sr=sr)
             if duration < 0.5 or duration > self.max_duration:
                 raise ValidationError(f"Invalid duration: {duration}s (must be 0.5-{self.max_duration}s)")
             
+            # Clean up converted file if it was created
+            if converted_path and os.path.exists(converted_path):
+                os.unlink(converted_path)
+            
             return True
             
         except Exception as e:
             if isinstance(e, ValidationError):
                 raise
+            print(f"Audio validation error: {str(e)}")
+            print(f"File path: {file_path}")
+            print(f"File exists: {os.path.exists(file_path)}")
+            if os.path.exists(file_path):
+                print(f"File size: {os.path.getsize(file_path)} bytes")
             raise ValidationError(f"Audio validation failed: {str(e)}")
     
     def preprocess_audio(self, audio_path: str) -> np.ndarray:
@@ -80,8 +126,20 @@ class AudioService:
             # Validate file first
             self.validate_audio_file(audio_path)
             
-            # Load audio file
-            y, sr = librosa.load(audio_path, sr=self.sample_rate, duration=self.max_duration)
+            # Load audio file with conversion if needed
+            converted_path = None
+            try:
+                y, sr = librosa.load(audio_path, sr=self.sample_rate, duration=self.max_duration)
+            except Exception as load_error:
+                print(f"Librosa load failed for preprocessing: {str(load_error)}")
+                # Try converting the audio file
+                try:
+                    converted_path = self._convert_audio_for_librosa(audio_path)
+                    y, sr = librosa.load(converted_path, sr=self.sample_rate, duration=self.max_duration)
+                    print(f"Successfully converted and loaded audio for preprocessing")
+                except Exception as convert_error:
+                    print(f"Audio conversion failed for preprocessing: {str(convert_error)}")
+                    raise load_error
             
             # Normalize audio
             y = librosa.util.normalize(y)
@@ -96,9 +154,17 @@ class AudioService:
             # Combine features
             features = np.concatenate([mfcc, mel_spec_db[:13]], axis=0)
             
+            # Clean up converted file if it was created
+            if converted_path and os.path.exists(converted_path):
+                os.unlink(converted_path)
+            
             return features
             
         except Exception as e:
+            print(f"Audio preprocessing error: {str(e)}")
+            print(f"Audio path: {audio_path}")
+            import traceback
+            traceback.print_exc()
             raise AudioProcessingError(f"Audio preprocessing failed: {str(e)}")
     
     def extract_audio_features(self, audio_path: str) -> Dict[str, float]:

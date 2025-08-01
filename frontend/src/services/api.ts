@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { TranslationData, ClassificationResult } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:3001/api/v1';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -50,7 +50,7 @@ export const classifyAudio = async (formData: FormData): Promise<ClassificationR
 export const getPersonalities = async () => {
   try {
     const response = await api.get('/personalities');
-    return response.data.personalities;
+    return response.data;
   } catch (error) {
     console.error('Failed to fetch personalities:', error);
     return [];

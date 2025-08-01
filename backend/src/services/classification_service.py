@@ -5,8 +5,8 @@ import numpy as np
 import random
 from typing import Dict
 
-from src.core.exceptions import ClassificationError
-from src.core.config import settings
+from backend.src.core.exceptions import ClassificationError
+from backend.src.core.config import settings
 
 
 class ClassificationService:

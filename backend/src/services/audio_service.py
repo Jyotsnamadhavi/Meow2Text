@@ -7,8 +7,8 @@ import os
 from typing import Dict, Tuple
 from pathlib import Path
 
-from src.core.exceptions import AudioProcessingError, ValidationError
-from src.core.config import settings
+from backend.src.core.exceptions import AudioProcessingError, ValidationError
+from backend.src.core.config import settings
 
 
 class AudioService:

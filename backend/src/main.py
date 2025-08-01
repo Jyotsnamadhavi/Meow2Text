@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.core.config import settings
-from src.core.exceptions import Meow2TextError
-from src.api.routes import router
+from backend.src.core.config import settings
+from backend.src.core.exceptions import Meow2TextError
+from backend.src.api.routes import router
 
 
 def create_app() -> FastAPI:
@@ -51,7 +51,7 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "src.main:app",
+        "backend.src.main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug

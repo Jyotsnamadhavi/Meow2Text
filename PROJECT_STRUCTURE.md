@@ -6,24 +6,25 @@ This document describes the modular, production-ready structure of the Meow2Text
 
 ```
 Meow2Text/
-├── src/                          # Main source code
-│   ├── __init__.py
-│   ├── main.py                   # FastAPI application factory
-│   ├── api/                      # API layer
-│   │   ├── __init__.py
-│   │   └── routes.py             # API endpoints
-│   ├── core/                     # Core functionality
-│   │   ├── __init__.py
-│   │   ├── config.py             # Application configuration
-│   │   └── exceptions.py         # Custom exceptions
-│   ├── models/                   # Data models
-│   │   ├── __init__.py
-│   │   └── schemas.py            # Pydantic schemas
-│   └── services/                 # Business logic services
+├── backend/                      # Backend source code
+│   └── src/                      # Main source code
 │       ├── __init__.py
-│       ├── audio_service.py      # Audio processing
-│       ├── classification_service.py  # Meow classification
-│       └── translation_service.py     # LangChain translation
+│       ├── main.py               # FastAPI application factory
+│       ├── api/                  # API layer
+│       │   ├── __init__.py
+│       │   └── routes.py         # API endpoints
+│       ├── core/                 # Core functionality
+│       │   ├── __init__.py
+│       │   ├── config.py         # Application configuration
+│       │   └── exceptions.py     # Custom exceptions
+│       ├── models/               # Data models
+│       │   ├── __init__.py
+│       │   └── schemas.py        # Pydantic schemas
+│       └── services/             # Business logic services
+│           ├── __init__.py
+│           ├── audio_service.py      # Audio processing
+│           ├── classification_service.py  # Meow classification
+│           └── translation_service.py     # LangChain translation
 ├── frontend/                     # React frontend
 │   ├── src/
 │   │   ├── components/           # React components
@@ -35,11 +36,11 @@ Meow2Text/
 ├── app.py                        # Application entry point
 ├── pyproject.toml               # Modern Python project config
 ├── requirements.txt             # Python dependencies
-├── setup.py                     # Setup script
 ├── quick_start.sh               # Backend startup script
 ├── start_frontend.sh            # Frontend startup script
 ├── README.md                    # Main documentation
 ├── CONTRIBUTING.md              # Contribution guidelines
+├── PROJECT_STRUCTURE.md         # This file
 ├── SETUP.md                     # Setup instructions
 └── .gitignore                   # Git ignore rules
 ```
@@ -69,24 +70,24 @@ Meow2Text/
 
 ## 📦 Module Descriptions
 
-### **API Layer (`src/api/`)**
+### **API Layer (`backend/src/api/`)**
 - **Purpose**: HTTP request/response handling
 - **Components**: FastAPI routes, request validation, response formatting
 - **Key Files**: `routes.py` - All API endpoints
 
-### **Core Layer (`src/core/`)**
+### **Core Layer (`backend/src/core/`)**
 - **Purpose**: Application foundation and configuration
 - **Components**: 
   - `config.py` - Centralized configuration using Pydantic Settings
   - `exceptions.py` - Custom exception hierarchy
 - **Benefits**: Centralized configuration, proper error handling
 
-### **Models Layer (`src/models/`)**
+### **Models Layer (`backend/src/models/`)**
 - **Purpose**: Data validation and serialization
 - **Components**: Pydantic schemas for API requests/responses
 - **Benefits**: Type safety, automatic validation, OpenAPI documentation
 
-### **Services Layer (`src/services/`)**
+### **Services Layer (`backend/src/services/`)**
 - **Purpose**: Business logic implementation
 - **Components**:
   - `audio_service.py` - Audio processing and validation
@@ -98,7 +99,7 @@ Meow2Text/
 
 ### **1. Configuration Management**
 ```python
-# src/core/config.py
+# backend/src/core/config.py
 class Settings(BaseSettings):
     app_name: str = "Meow2Text API"
     openai_api_key: str = ""
@@ -110,7 +111,7 @@ class Settings(BaseSettings):
 
 ### **2. Service Pattern**
 ```python
-# src/services/audio_service.py
+# backend/src/services/audio_service.py
 class AudioService:
     def preprocess_audio(self, audio_path: str) -> np.ndarray:
         # Business logic here
@@ -122,7 +123,7 @@ audio_service = AudioService()
 
 ### **3. Custom Exceptions**
 ```python
-# src/core/exceptions.py
+# backend/src/core/exceptions.py
 class Meow2TextError(Exception):
     """Base exception for Meow2Text application."""
     pass
@@ -134,7 +135,7 @@ class AudioProcessingError(Meow2TextError):
 
 ### **4. Pydantic Schemas**
 ```python
-# src/models/schemas.py
+# backend/src/models/schemas.py
 class ClassificationResult(BaseModel):
     category: str = Field(..., description="Meow category")
     confidence: float = Field(..., ge=0.0, le=1.0)
@@ -173,10 +174,10 @@ class ClassificationResult(BaseModel):
 ## 🔄 Development Workflow
 
 ### **Adding New Features**
-1. **New Service**: Add to `src/services/`
-2. **New API**: Add to `src/api/routes.py`
-3. **New Models**: Add to `src/models/schemas.py`
-4. **Configuration**: Add to `src/core/config.py`
+1. **New Service**: Add to `backend/src/services/`
+2. **New API**: Add to `backend/src/api/routes.py`
+3. **New Models**: Add to `backend/src/models/schemas.py`
+4. **Configuration**: Add to `backend/src/core/config.py`
 
 ### **Testing**
 ```bash
@@ -184,7 +185,7 @@ class ClassificationResult(BaseModel):
 pytest
 
 # Run with coverage
-pytest --cov=src
+pytest --cov=backend
 
 # Run specific service tests
 pytest tests/test_audio_service.py
@@ -193,14 +194,14 @@ pytest tests/test_audio_service.py
 ### **Code Quality**
 ```bash
 # Format code
-black src/
-isort src/
+black backend/
+isort backend/
 
 # Type checking
-mypy src/
+mypy backend/
 
 # Linting
-flake8 src/
+flake8 backend/
 ```
 
 ## 📈 Future Enhancements

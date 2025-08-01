@@ -8,18 +8,18 @@ from typing import List
 from fastapi import APIRouter, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 
-from src.core.config import settings
-from src.core.exceptions import Meow2TextError, ValidationError
-from src.models.schemas import (
+from backend.src.core.config import settings
+from backend.src.core.exceptions import Meow2TextError, ValidationError
+from backend.src.models.schemas import (
     ClassificationResult, 
     TranslationResponse, 
     PersonalityInfo, 
     HealthResponse,
     ErrorResponse
 )
-from src.services.audio_service import audio_service
-from src.services.classification_service import classification_service
-from src.services.translation_service import translation_service
+from backend.src.services.audio_service import audio_service
+from backend.src.services.classification_service import classification_service
+from backend.src.services.translation_service import translation_service
 
 # Create router
 router = APIRouter()

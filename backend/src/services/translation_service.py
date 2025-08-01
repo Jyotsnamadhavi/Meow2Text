@@ -7,8 +7,8 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
 
-from src.core.exceptions import TranslationError
-from src.core.config import settings
+from backend.src.core.exceptions import TranslationError
+from backend.src.core.config import settings
 
 
 class TranslationService:

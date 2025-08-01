@@ -73,8 +73,21 @@ async def classify_audio(file: UploadFile = File(...)):
             if file_ext not in valid_extensions:
                 raise ValidationError(f"File must be an audio file. Supported formats: {', '.join(valid_extensions)}")
         
-        # Save uploaded file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+        # Save uploaded file temporarily with correct extension
+        # Determine file extension from content type
+        content_type_to_ext = {
+            'audio/wav': '.wav',
+            'audio/mp3': '.mp3',
+            'audio/mpeg': '.mp3',
+            'audio/mp4': '.mp4',
+            'audio/webm': '.webm',
+            'audio/ogg': '.ogg',
+            'audio/flac': '.flac',
+            'audio/m4a': '.m4a'
+        }
+        
+        file_ext = content_type_to_ext.get(file.content_type, '.wav')
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
             shutil.copyfileobj(file.file, temp_file)
             temp_path = temp_file.name
         
@@ -134,8 +147,21 @@ async def translate_audio(
         if personality not in valid_personalities:
             raise ValidationError(f"Personality must be one of: {valid_personalities}")
         
-        # Save uploaded file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+        # Save uploaded file temporarily with correct extension
+        # Determine file extension from content type
+        content_type_to_ext = {
+            'audio/wav': '.wav',
+            'audio/mp3': '.mp3',
+            'audio/mpeg': '.mp3',
+            'audio/mp4': '.mp4',
+            'audio/webm': '.webm',
+            'audio/ogg': '.ogg',
+            'audio/flac': '.flac',
+            'audio/m4a': '.m4a'
+        }
+        
+        file_ext = content_type_to_ext.get(file.content_type, '.wav')
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
             shutil.copyfileobj(file.file, temp_file)
             temp_path = temp_file.name
         
@@ -160,8 +186,12 @@ async def translate_audio(
             os.unlink(temp_path)
             
     except Meow2TextError as e:
+        print(f"Meow2Text Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        print(f"Unexpected Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
 
 

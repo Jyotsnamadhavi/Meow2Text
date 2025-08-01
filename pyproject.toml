@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meow2text"
+version = "1.0.0"
+description = "Translate your cat's meows to sassy text using AI"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Meow2Text Team", email = "team@meow2text.com"}
+]
+keywords = ["ai", "audio", "classification", "translation", "cats", "langchain"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "python-multipart>=0.0.6",
+    "langchain>=0.0.350",
+    "langchain-openai>=0.0.2",
+    "langchain-community>=0.0.2",
+    "langchain-experimental>=0.0.1",
+    "openai>=1.6.1",
+    "librosa>=0.10.1",
+    "torch>=2.1.1",
+    "torchaudio>=2.1.1",
+    "numpy>=1.24.3",
+    "pydub>=0.25.1",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "scikit-learn>=1.3.2",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/meow2text/meow2text"
+Repository = "https://github.com/meow2text/meow2text"
+Issues = "https://github.com/meow2text/meow2text/issues"
+
+[project.scripts]
+meow2text = "app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short" 

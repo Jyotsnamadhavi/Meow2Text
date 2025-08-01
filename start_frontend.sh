@@ -1,27 +1,27 @@
 #!/bin/bash
 
-echo "🐱 Meow2Text Frontend"
-echo "====================="
+echo "🐱 Starting Meow2Text Frontend..."
+echo "================================"
 
 # Check if we're in the right directory
 if [ ! -d "frontend" ]; then
-    echo "❌ Frontend directory not found. Please run this from the project root."
+    echo "❌ Frontend directory not found. Please run this script from the project root."
     exit 1
 fi
 
+# Navigate to frontend directory
+cd frontend
+
 # Check if node_modules exists
-if [ ! -d "frontend/node_modules" ]; then
+if [ ! -d "node_modules" ]; then
     echo "📦 Installing frontend dependencies..."
-    cd frontend
     npm install
-    cd ..
 fi
 
-# Start frontend
-echo "🚀 Starting frontend development server..."
-echo "Frontend will be available at: http://localhost:3000"
+echo "🚀 Starting React development server on port 3002..."
+echo "Frontend will be available at: http://localhost:3002"
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-cd frontend
-npm start 
+# Start the frontend on port 3002
+PORT=3002 npm start 

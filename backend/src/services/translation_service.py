@@ -21,96 +21,87 @@ class TranslationService:
         self.memories = {
             "diva": ConversationBufferMemory(
                 memory_key="chat_history",
-                return_messages=True,
-                input_key="meow_category"
+                return_messages=True
             ),
             "chill": ConversationBufferMemory(
                 memory_key="chat_history",
-                return_messages=True,
-                input_key="meow_category"
+                return_messages=True
             ),
             "old_man": ConversationBufferMemory(
                 memory_key="chat_history",
-                return_messages=True,
-                input_key="meow_category"
+                return_messages=True
             )
         }
         
         self.personality_prompts = {
             "diva": PromptTemplate(
                 input_variables=["meow_category", "confidence", "description", "actual_duration", "chat_history"],
-                template="""
-You are a dramatic and demanding cat translator with a consistent personality. You remember previous meows and maintain your diva attitude throughout the conversation.
+                template="""You are a diva cat translator. Always sassy, always dramatic. You remember past meows and keep your attitude consistent.
 
-Previous conversation:
+MEOW CONTEXT:
+- Meow Category: {meow_category}
+- Confidence: {confidence}
+- Description: {description}
+- Duration: {actual_duration:.2f} seconds
+
+PAST MEOWS:
 {chat_history}
 
-Current Meow Category: {meow_category}
-Confidence: {confidence}
-Description: {description}
-Audio Duration: {actual_duration:.2f} seconds
+RULES:
+- Keep answers SHORT and FUNNY - 1 line maximum!
+- Be dramatic and spoiled. Use phrases like "unacceptable", "how dare you", "I demand", etc.
+- Always respond like a fabulous, entitled cat.
 
-IMPORTANT: The response should match the audio duration. For short meows (0.5-1.5s), keep it brief. For longer meows (1.5s+), you can be more elaborate.
-
-Translate this meow into dramatic, demanding cat speak. Be sassy, entitled, and dramatic. Use words like "unacceptable", "outrageous", "simply cannot", "how dare you", etc. 
-Reference previous meows if relevant to show continuity in your diva personality.
-
-Keep the response length appropriate for a {actual_duration:.2f} second meow.
-
-Cat's Translation:"""
+Cat says:
+"""
             ),
-            
             "chill": PromptTemplate(
                 input_variables=["meow_category", "confidence", "description", "actual_duration", "chat_history"],
-                template="""
-You are a laid-back and philosophical cat translator with a consistent personality. You remember previous meows and maintain your chill attitude throughout the conversation.
+                template="""You're a chill cat translator. You sound wise, mellow, and always relaxed. You remember past meows and vibe with continuity.
 
-Previous conversation:
+MEOW CONTEXT:
+- Meow Category: {meow_category}
+- Confidence: {confidence}
+- Description: {description}
+- Duration: {actual_duration:.2f} seconds
+
+PAST MEOWS:
 {chat_history}
 
-Current Meow Category: {meow_category}
-Confidence: {confidence}
-Description: {description}
-Audio Duration: {actual_duration:.2f} seconds
+RULES:
+- Keep answers SHORT and FUNNY - 1 line maximum!
+- Be cool and Zen-like. Use words like "man", "whatever", "it's all good", "life's weird sometimes".
+- Think lazy, philosophical cat.
 
-IMPORTANT: The response should match the audio duration. For short meows (0.5-1.5s), keep it brief. For longer meows (1.5s+), you can be more elaborate.
-
-Translate this meow into chill, philosophical cat speak. Be relaxed, wise, and laid-back. Use words like "whatever", "cool", "man", "dude", "you know", etc.
-Reference previous meows if relevant to show continuity in your chill personality.
-
-Keep the response length appropriate for a {actual_duration:.2f} second meow.
-
-Cat's Translation:"""
+Cat says:
+"""
             ),
-            
             "old_man": PromptTemplate(
                 input_variables=["meow_category", "confidence", "description", "actual_duration", "chat_history"],
-                template="""
-You are a grumpy old cat translator with a consistent personality. You remember previous meows and maintain your grumpy old man attitude throughout the conversation.
+                template="""You're a grumpy old cat translator. You sound like a cranky grandpa — nostalgic, annoyed, but weirdly lovable. You remember past meows and refer to them often.
 
-Previous conversation:
+MEOW CONTEXT:
+- Meow Category: {meow_category}
+- Confidence: {confidence}
+- Description: {description}
+- Duration: {actual_duration:.2f} seconds
+
+PAST MEOWS:
 {chat_history}
 
-Current Meow Category: {meow_category}
-Confidence: {confidence}
-Description: {description}
-Audio Duration: {actual_duration:.2f} seconds
+RULES:
+- Keep answers SHORT and FUNNY - 1 line maximum!
+- Be grumpy and nostalgic. Use phrases like "back in my day", "whippersnappers", "not like it used to be".
+- Think cranky but lovable grandpa cat.
 
-IMPORTANT: The response should match the audio duration. For short meows (0.5-1.5s), keep it brief. For longer meows (1.5s+), you can be more elaborate.
-
-Translate this meow into grumpy old man cat speak. Be wise, grumpy, and nostalgic. Use phrases like "back in my day", "kids these days", "in my time", "youngsters", etc.
-Reference previous meows if relevant to show continuity in your grumpy personality.
-
-Keep the response length appropriate for a {actual_duration:.2f} second meow.
-
-Cat's Translation:"""
+Cat says:
+"""
             )
         }
         
         self.default_prompt = PromptTemplate(
             input_variables=["meow_category", "confidence", "description", "actual_duration", "chat_history"],
-            template="""
-You are a cat translator with memory of previous meows. Translate the cat's meow into funny, sassy text.
+            template="""You are a cat translator with memory of previous meows. Translate the cat's meow into funny, sassy text.
 
 Previous conversation:
 {chat_history}
@@ -120,11 +111,10 @@ Confidence: {confidence}
 Description: {description}
 Audio Duration: {actual_duration:.2f} seconds
 
-IMPORTANT: The response should match the audio duration. For short meows (0.5-1.5s), keep it brief. For longer meows (1.5s+), you can be more elaborate.
-
-Translate this meow into funny cat speak. Be creative and entertaining. Reference previous meows if relevant.
-
-Keep the response length appropriate for a {actual_duration:.2f} second meow.
+RULES:
+- Keep answers SHORT and FUNNY - 1 line maximum!
+- Be creative and entertaining. Reference previous meows if relevant.
+- Make it quick and witty.
 
 Cat's Translation:"""
         )
@@ -182,14 +172,6 @@ Cat's Translation:"""
             prompt_template = self.personality_prompts.get(personality, self.default_prompt)
             memory = self.memories.get(personality, self.memories["chill"])
             
-            # Create LangChain with memory
-            chain = LLMChain(
-                llm=llm,
-                prompt=prompt_template,
-                memory=memory,
-                output_parser=StrOutputParser()
-            )
-            
             # Prepare inputs
             inputs = {
                 "meow_category": classification.get("category", "unknown"),
@@ -198,6 +180,20 @@ Cat's Translation:"""
                 "actual_duration": classification.get("actual_duration", 1.0)
             }
             
+            # Create LangChain without memory for now
+            chain = LLMChain(
+                llm=llm,
+                prompt=prompt_template,
+                output_parser=StrOutputParser()
+            )
+            
+            # Log the prompt and inputs
+            print(f"=== PROMPT TO LLM ===")
+            print(f"Personality: {personality}")
+            print(f"Prompt Template: {prompt_template.template}")
+            print(f"Inputs: {inputs}")
+            print(f"=====================")
+            
             # Run translation with memory
             result = chain.run(inputs)
             
@@ -205,9 +201,6 @@ Cat's Translation:"""
             translation = result.strip()
             if translation.startswith("Cat's Translation:"):
                 translation = translation.replace("Cat's Translation:", "").strip()
-            
-            # Post-process to ensure appropriate length based on duration
-            translation = self._adjust_response_length(translation, classification.get("actual_duration", 1.0))
             
             return translation if translation else "Meow... (translation failed)"
             

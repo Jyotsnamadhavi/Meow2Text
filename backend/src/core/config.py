@@ -19,11 +19,17 @@ class Settings(BaseSettings):
     port: int = 3001
     debug: bool = True
     
-    # OpenAI Configuration
+    # LLM Configuration
+    llm_provider: str = "local"  # "openai" or "local"
     openai_api_key: str = ""
     openai_model: str = "gpt-3.5-turbo"
     openai_temperature: float = 0.8
     openai_max_tokens: int = 150
+    
+    # Local LLM Configuration
+    local_model: str = "mistral:latest"  # Using available model
+    local_temperature: float = 0.8
+    local_max_tokens: int = 150
     
     # CORS Configuration
     allowed_origins: str = "http://localhost:3002,http://127.0.0.1:3002"

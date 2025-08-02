@@ -16,13 +16,31 @@ A fun AI-powered application that translates cat meows into sassy, personality-d
 ### Prerequisites
 - Python 3.8+
 - Node.js 14+
-- OpenAI API key
+- **Choose one**: OpenAI API key OR Local LLM setup
 
-### Option 1: Automated Setup (Recommended)
+### Option 1: Local LLM Setup (No API Key Required)
+
+1. **Set up local LLM**:
+   ```bash
+   ./setup_local_llm.sh
+   ```
+
+2. **Start the backend**:
+   ```bash
+   ./quick_start.sh
+   ```
+
+3. **In a new terminal, start the frontend**:
+   ```bash
+   ./start_frontend.sh
+   ```
+
+### Option 2: OpenAI Setup
 
 1. **Add your OpenAI API key**:
    ```bash
-   # Edit .env file and replace 'your_openai_api_key_here' with your actual key
+   # Edit .env file and set LLM_PROVIDER=openai
+   # Replace 'your_openai_api_key_here' with your actual key
    nano .env
    ```
 
@@ -55,9 +73,9 @@ A fun AI-powered application that translates cat meows into sassy, personality-d
 
 ## 🌐 Access the Application
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
+- **Frontend**: http://localhost:3002
+- **Backend API**: http://localhost:3001
+- **API Docs**: http://localhost:3001/docs
 
 ## 🎯 How to Use
 
@@ -69,13 +87,13 @@ A fun AI-powered application that translates cat meows into sassy, personality-d
 
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:3001/api/v1/health
 
 # Get personalities
-curl http://localhost:8000/personalities
+curl http://localhost:3001/api/v1/personalities
 
 # Test with audio file
-curl -X POST -F "file=@your_audio.wav" http://localhost:8000/translate
+curl -X POST -F "file=@your_audio.wav" -F "personality=chill" http://localhost:3001/api/v1/translate
 ```
 
 ## 📁 Project Structure

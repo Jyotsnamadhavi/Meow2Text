@@ -242,4 +242,66 @@ async def get_config():
         "max_audio_size_mb": settings.max_audio_size // (1024 * 1024),
         "audio_max_duration": settings.audio_max_duration,
         "confidence_threshold": settings.confidence_threshold
-    } 
+    }
+
+
+@router.get("/memory/stats")
+async def get_memory_stats():
+    """
+    Get memory statistics for all personalities.
+    
+    Returns:
+        Memory statistics for each personality
+    """
+    stats = translation_service.get_memory_stats()
+    return {
+        "memory_stats": stats,
+        "total_conversations": sum(stats.values())
+    }
+
+
+@router.get("/memory/history/{personality}")
+async def get_conversation_history(personality: str):
+    """
+    Get conversation history for a specific personality.
+    
+    Args:
+        personality: Cat personality (diva, chill, old_man)
+        
+    Returns:
+        Conversation history
+    """
+    valid_personalities = ["diva", "chill", "old_man"]
+    if personality not in valid_personalities:
+        raise HTTPException(status_code=400, detail=f"Personality must be one of: {valid_personalities}")
+    
+    history = translation_service.get_conversation_history(personality)
+    return {
+        "personality": personality,
+        "conversation_history": history,
+        "message_count": len(history.split('\n')) if history else 0
+    }
+
+
+@router.delete("/memory/clear")
+async def clear_memory(personality: str = None):
+    """
+    Clear conversation memory for a specific personality or all personalities.
+    
+    Args:
+        personality: Specific personality to clear (optional)
+        
+    Returns:
+        Confirmation message
+    """
+    if personality:
+        valid_personalities = ["diva", "chill", "old_man"]
+        if personality not in valid_personalities:
+            raise HTTPException(status_code=400, detail=f"Personality must be one of: {valid_personalities}")
+    
+    translation_service.clear_memory(personality)
+    
+    if personality:
+        return {"message": f"Memory cleared for {personality} personality"}
+    else:
+        return {"message": "Memory cleared for all personalities"} 

@@ -17,20 +17,11 @@ class TranslationService:
     """Service for translating meows using LangChain with conversational memory."""
     
     def __init__(self):
-        # Initialize memory for each personality
-        self.memories = {
-            "diva": ConversationBufferMemory(
-                memory_key="chat_history",
-                return_messages=True
-            ),
-            "chill": ConversationBufferMemory(
-                memory_key="chat_history",
-                return_messages=True
-            ),
-            "old_man": ConversationBufferMemory(
-                memory_key="chat_history",
-                return_messages=True
-            )
+        # Initialize conversation memory for each personality
+        self.conversation_memories = {
+            "diva": [],
+            "chill": [],
+            "old_man": []
         }
         
         self.personality_prompts = {
@@ -49,7 +40,8 @@ PAST MEOWS:
 
 RULES:
 - Keep answers SHORT and FUNNY - 1 line maximum!
-- Be dramatic and spoiled. Use phrases like "unacceptable", "how dare you", "I demand", etc.
+- Use SIMPLE ENGLISH words that a child could understand
+- Be dramatic and spoiled. Use simple phrases like "no good", "bad", "want food", "play now", etc.
 - Always respond like a fabulous, entitled cat.
 
 Cat says:
@@ -70,7 +62,8 @@ PAST MEOWS:
 
 RULES:
 - Keep answers SHORT and FUNNY - 1 line maximum!
-- Be cool and Zen-like. Use words like "man", "whatever", "it's all good", "life's weird sometimes".
+- Use SIMPLE ENGLISH words that a child could understand
+- Be cool and Zen-like. Use simple words like "okay", "good", "fine", "cool", "whatever".
 - Think lazy, philosophical cat.
 
 Cat says:
@@ -91,7 +84,8 @@ PAST MEOWS:
 
 RULES:
 - Keep answers SHORT and FUNNY - 1 line maximum!
-- Be grumpy and nostalgic. Use phrases like "back in my day", "whippersnappers", "not like it used to be".
+- Use SIMPLE ENGLISH words that a child could understand
+- Be grumpy and nostalgic. Use simple phrases like "old days", "young cats", "not same", "better before".
 - Think cranky but lovable grandpa cat.
 
 Cat says:
@@ -113,8 +107,9 @@ Audio Duration: {actual_duration:.2f} seconds
 
 RULES:
 - Keep answers SHORT and FUNNY - 1 line maximum!
+- Use SIMPLE ENGLISH words that a child could understand
 - Be creative and entertaining. Reference previous meows if relevant.
-- Make it quick and witty.
+- Make it quick and witty with simple words.
 
 Cat's Translation:"""
         )
@@ -168,16 +163,17 @@ Cat's Translation:"""
                     else:
                         return self._get_fallback_translation(classification, personality)
             
-            # Get appropriate prompt template and memory
+            # Get appropriate prompt template and conversation history
             prompt_template = self.personality_prompts.get(personality, self.default_prompt)
-            memory = self.memories.get(personality, self.memories["chill"])
+            conversation_history = self.get_conversation_history(personality)
             
             # Prepare inputs
             inputs = {
                 "meow_category": classification.get("category", "unknown"),
                 "confidence": classification.get("confidence", 0.5),
                 "description": classification.get("description", "Unknown meow"),
-                "actual_duration": classification.get("actual_duration", 1.0)
+                "actual_duration": classification.get("actual_duration", 1.0),
+                "chat_history": conversation_history
             }
             
             # Create LangChain without memory for now
@@ -192,6 +188,7 @@ Cat's Translation:"""
             print(f"Personality: {personality}")
             print(f"Prompt Template: {prompt_template.template}")
             print(f"Inputs: {inputs}")
+            print(f"Conversation History: {conversation_history}")
             print(f"=====================")
             
             # Run translation with memory
@@ -201,6 +198,9 @@ Cat's Translation:"""
             translation = result.strip()
             if translation.startswith("Cat's Translation:"):
                 translation = translation.replace("Cat's Translation:", "").strip()
+            
+            # Save conversation to memory
+            self.save_conversation(personality, classification.get("category", "unknown"), translation)
             
             return translation if translation else "Meow... (translation failed)"
             
@@ -296,11 +296,11 @@ Cat's Translation:"""
             personality: Specific personality to clear, or None for all
         """
         if personality:
-            if personality in self.memories:
-                self.memories[personality].clear()
+            if personality in self.conversation_memories:
+                self.conversation_memories[personality] = []
         else:
-            for memory in self.memories.values():
-                memory.clear()
+            for personality in self.conversation_memories:
+                self.conversation_memories[personality] = []
     
     def get_conversation_history(self, personality: str) -> str:
         """
@@ -312,10 +312,33 @@ Cat's Translation:"""
         Returns:
             Conversation history as string
         """
-        memory = self.memories.get(personality)
-        if memory:
-            return memory.buffer
-        return ""
+        memory = self.conversation_memories.get(personality, [])
+        if not memory:
+            return "No previous meows."
+        
+        # Format conversation history
+        history_lines = []
+        for i, (category, response) in enumerate(memory[-3:], 1):  # Last 3 interactions
+            history_lines.append(f"Meow {i}: {category} → Cat: {response}")
+        
+        return "\n".join(history_lines)
+    
+    def save_conversation(self, personality: str, category: str, response: str):
+        """
+        Save a conversation interaction to memory.
+        
+        Args:
+            personality: Cat personality
+            category: Meow category
+            response: Cat's response
+        """
+        if personality not in self.conversation_memories:
+            self.conversation_memories[personality] = []
+        
+        # Add to memory (keep last 5 interactions)
+        self.conversation_memories[personality].append((category, response))
+        if len(self.conversation_memories[personality]) > 5:
+            self.conversation_memories[personality] = self.conversation_memories[personality][-5:]
     
     def get_memory_stats(self) -> Dict[str, int]:
         """
@@ -325,9 +348,8 @@ Cat's Translation:"""
             Dictionary with personality names and conversation count
         """
         stats = {}
-        for personality, memory in self.memories.items():
-            # Count messages in memory buffer
-            stats[personality] = len(memory.chat_memory.messages) if memory.chat_memory else 0
+        for personality, memory in self.conversation_memories.items():
+            stats[personality] = len(memory)
         return stats
     
     def _adjust_response_length(self, translation: str, duration: float) -> str:

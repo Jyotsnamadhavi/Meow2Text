@@ -5,6 +5,7 @@ export interface TranslationData {
     description: string;
     all_scores: Record<string, number>;
     features: Record<string, any>;
+    actual_duration?: number;
   };
   translation: string;
   personality: string;
@@ -23,4 +24,5 @@ export interface ClassificationResult {
   description: string;
   all_scores: Record<string, number>;
   features: Record<string, any>;
+  actual_duration?: number;
 } 

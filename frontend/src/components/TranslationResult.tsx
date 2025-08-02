@@ -64,6 +64,13 @@ const TranslationResult: React.FC<TranslationResultProps> = ({ data }) => {
             <span className="label">Description:</span>
             <span className="value">{classification.description}</span>
           </div>
+          
+          {classification.actual_duration && (
+            <div className="classification-item">
+              <span className="label">Duration:</span>
+              <span className="value">⏱️ {classification.actual_duration.toFixed(2)}s</span>
+            </div>
+          )}
         </div>
 
         <div className="confidence-scores">

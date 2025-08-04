@@ -45,6 +45,38 @@ class AudioService:
             print(f"Audio conversion failed: {str(e)}")
             raise AudioProcessingError(f"Failed to convert audio: {str(e)}")
     
+    def is_silent_audio(self, audio_features: Dict[str, float]) -> Tuple[bool, str]:
+        """
+        Determine if the audio is silent or has no sound.
+        
+        Args:
+            audio_features: Extracted audio features
+            
+        Returns:
+            Tuple of (is_silent, reason)
+        """
+        try:
+            # Check loudness (RMS)
+            loudness = audio_features.get("loudness", 0)
+            if loudness < 0.01:  # Very quiet threshold
+                return True, f"No meow detected (loudness: {loudness:.4f})"
+            
+            # Check if there's any spectral content
+            spectral_centroid = audio_features.get("spectral_centroid_mean", 0)
+            if spectral_centroid < 50:  # Very low frequency content
+                return True, f"No meow detected (spectral centroid: {spectral_centroid:.1f}Hz)"
+            
+            # Check duration
+            duration = audio_features.get("duration", 0)
+            if duration < 0.1:  # Too short to be meaningful
+                return True, f"No meow detected (audio too short: {duration:.2f}s)"
+            
+            return False, "Meow detected"
+            
+        except Exception as e:
+            print(f"Error in silent audio detection: {str(e)}")
+            return False, f"Error analyzing audio: {str(e)}"
+    
     def validate_audio_file(self, file_path: str) -> Tuple[bool, Optional[str]]:
         """
         Validate audio file format and properties.
@@ -91,6 +123,11 @@ class AudioService:
             duration = librosa.get_duration(y=y, sr=sr)
             if duration < 0.5 or duration > self.max_duration:
                 return False, f"Invalid duration: {duration}s (must be 0.5-{self.max_duration}s)"
+            
+            # Check if audio is silent
+            rms = np.sqrt(np.mean(y**2))
+            if rms < 0.01:
+                return False, "No meow detected in audio file"
             
             # Clean up converted file if it was created
             if converted_path and os.path.exists(converted_path):

@@ -101,6 +101,12 @@ async def classify_audio(file: UploadFile = File(...)):
             # Preprocess audio
             processed_audio = audio_service.preprocess_audio(temp_path)
             
+            # Extract audio features and check for silent audio
+            audio_features = audio_service.extract_audio_features(temp_path)
+            is_silent, silent_reason = audio_service.is_silent_audio(audio_features)
+            if is_silent:
+                raise ValidationError(f"No meow detected: {silent_reason}")
+            
             # Classify meow
             classification = classification_service.classify_meow(processed_audio)
             
@@ -178,6 +184,12 @@ async def translate_audio(
         try:
             processed_audio = audio_service.preprocess_audio(temp_path)
             audio_features = audio_service.extract_audio_features(temp_path)
+            
+            # Check if audio is silent
+            is_silent, silent_reason = audio_service.is_silent_audio(audio_features)
+            if is_silent:
+                raise ValidationError(f"No meow detected: {silent_reason}")
+            
             classification = classification_service.classify_meow(processed_audio)
             classification["actual_duration"] = audio_features["duration"]
             

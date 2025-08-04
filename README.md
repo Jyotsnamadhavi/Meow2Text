@@ -1,167 +1,95 @@
-# Meow2Text: Translate Your Cat's Meows to Text
+# Meow2Text 🐱
 
-A fun AI-powered application that translates cat meows into sassy, personality-driven text using audio classification and LangChain.
+Translate your cat's meows into sassy text using AI!
 
-## 🎉 Current Status
+## Features
 
-✅ **Backend**: FastAPI server with audio processing and LangChain integration  
-✅ **Frontend**: React application with audio recording and personality selection  
-✅ **Audio Processing**: librosa-based audio preprocessing  
-✅ **Classification**: Rule-based meow classification system  
-✅ **Translation**: LangChain-powered personality-based translation  
-✅ **Setup Scripts**: Automated setup and quick start scripts  
+- 🎤 **Record Cat Meows**: Upload or record audio files
+- 🧠 **AI Translation**: Uses local LLM (Mistral) for translation
+- 😸 **Personality Modes**: Diva, Chill, and Old Man personalities
+- 💬 **Conversation Memory**: Each personality remembers past meows
+- 🎯 **Smart Detection**: Detects silent audio and invalid files
 
-## 🚀 Quick Start
+## Quick Start
 
-### Prerequisites
-- Python 3.8+
-- Node.js 14+
-- **Choose one**: OpenAI API key OR Local LLM setup
+### Backend Setup
 
-### Option 1: Local LLM Setup (No API Key Required)
-
-1. **Set up local LLM**:
+1. **Install dependencies**:
    ```bash
-   ./setup_local_llm.sh
+   pip install -r requirements.txt
    ```
 
-2. **Start the backend**:
+2. **Set up local LLM** (Ollama):
    ```bash
-   ./quick_start.sh
+   # Install Ollama (if not already installed)
+   brew install ollama
+   
+   # Start Ollama and pull model
+   ollama serve &
+   ollama pull mistral:latest
    ```
 
-3. **In a new terminal, start the frontend**:
+3. **Start backend**:
    ```bash
-   ./start_frontend.sh
+   python app.py
+   ```
+   Backend runs on `http://localhost:3001`
+
+### Frontend Setup
+
+1. **Install dependencies**:
+   ```bash
+   cd frontend
+   npm install
    ```
 
-### Option 2: OpenAI Setup
-
-1. **Add your OpenAI API key**:
+2. **Start frontend**:
    ```bash
-   # Edit .env file and set LLM_PROVIDER=openai
-   # Replace 'your_openai_api_key_here' with your actual key
-   nano .env
+   npm start
    ```
+   Frontend runs on `http://localhost:3002`
 
-2. **Start the backend**:
-   ```bash
-   ./quick_start.sh
-   ```
+## API Endpoints
 
-3. **In a new terminal, start the frontend**:
-   ```bash
-   ./start_frontend.sh
-   ```
+- `POST /api/v1/translate` - Translate cat meow to text
+- `POST /api/v1/classify` - Classify meow type
+- `GET /api/v1/personalities` - Get available personalities
+- `GET /api/v1/memory/stats` - Get conversation memory stats
 
-### Option 2: Manual Setup
+## Tech Stack
 
-1. **Activate virtual environment**:
-   ```bash
-   source venv/bin/activate
-   ```
+- **Backend**: FastAPI, LangChain, librosa, Ollama
+- **Frontend**: React, TypeScript, MediaRecorder API
+- **AI**: Mistral 7B (local LLM)
 
-2. **Start backend**:
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-3. **Start frontend** (in new terminal):
-   ```bash
-   cd frontend && npm start
-   ```
-
-## 🌐 Access the Application
-
-- **Frontend**: http://localhost:3002
-- **Backend API**: http://localhost:3001
-- **API Docs**: http://localhost:3001/docs
-
-## 🎯 How to Use
-
-1. **Record Audio**: Click the microphone button and record your cat's meow
-2. **Choose Personality**: Select from Diva 👑, Chill 😎, or Old Man 👴
-3. **Get Translation**: View the sassy cat translation with analysis
-
-## 🧪 Test the API
-
-```bash
-# Health check
-curl http://localhost:3001/api/v1/health
-
-# Get personalities
-curl http://localhost:3001/api/v1/personalities
-
-# Test with audio file
-curl -X POST -F "file=@your_audio.wav" -F "personality=chill" http://localhost:3001/api/v1/translate
-```
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 Meow2Text/
-├── main.py                 # FastAPI application
-├── requirements.txt        # Python dependencies
-├── setup.py               # Interactive setup script
-├── quick_start.sh         # Backend startup script
-├── start_frontend.sh      # Frontend startup script
-├── utils/                 # Backend utilities
-│   ├── audio.py          # Audio processing
-│   ├── classification.py # Meow classification
-│   └── translation.py    # LangChain translation
-├── frontend/             # React application
-│   ├── src/
-│   │   ├── components/   # React components
-│   │   ├── services/     # API services
-│   │   └── types.ts      # TypeScript types
-│   └── package.json      # Node.js dependencies
-└── README.md             # This file
+├── backend/
+│   └── src/
+│       ├── api/          # FastAPI routes
+│       ├── core/         # Configuration & exceptions
+│       ├── models/       # Pydantic schemas
+│       └── services/     # Audio, classification, translation
+├── frontend/
+│   └── src/
+│       ├── components/   # React components
+│       ├── services/     # API calls
+│       └── types/        # TypeScript interfaces
+└── requirements.txt
 ```
 
-## 🔧 Configuration
+## Environment Variables
 
-Create a `.env` file with:
+Create `.env` file:
 ```env
-OPENAI_API_KEY=your_actual_api_key_here
+LLM_PROVIDER=local
+LOCAL_MODEL=mistral:latest
 HOST=0.0.0.0
-PORT=8000
-ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+PORT=3001
 ```
 
-## 🎭 Features
+## License
 
-- **Audio Recording**: Browser-based audio recording
-- **Meow Classification**: 5 categories (hungry, angry, playful, sleepy, attention)
-- **Personality System**: 3 distinct cat personalities
-- **LangChain Integration**: AI-powered translation
-- **Modern UI**: Responsive design with cat-themed styling
-
-## 🐛 Troubleshooting
-
-1. **"uvicorn not found"**: Activate virtual environment with `source venv/bin/activate`
-2. **"npm not found"**: Install Node.js from https://nodejs.org/
-3. **API key errors**: Add your OpenAI API key to `.env` file
-4. **Port conflicts**: Change port in `.env` or kill existing processes
-
-## 📝 Development
-
-- **Backend**: FastAPI with async endpoints
-- **Frontend**: React with TypeScript
-- **Audio**: librosa for processing, Web Audio API for recording
-- **AI**: LangChain with OpenAI GPT for translations
-
-## 🚀 Next Steps
-
-1. **Add your OpenAI API key** to `.env` file
-2. **Start both servers** using the quick start scripts
-3. **Test with real cat meows**!
-4. **Improve the model** with more training data
-5. **Add features** like conversation memory, multiple cats, etc.
-
-## 📄 License
-
-MIT License - Have fun with it! 😸
-
----
-
-**Ready to translate some meows? Start with `./quick_start.sh`! 🐱✨** 
+MIT License 

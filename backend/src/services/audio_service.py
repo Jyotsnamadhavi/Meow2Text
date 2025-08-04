@@ -5,7 +5,7 @@ import librosa
 import numpy as np
 import os
 import tempfile
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 from pathlib import Path
 from pydub import AudioSegment
 
@@ -45,7 +45,7 @@ class AudioService:
             print(f"Audio conversion failed: {str(e)}")
             raise AudioProcessingError(f"Failed to convert audio: {str(e)}")
     
-    def validate_audio_file(self, file_path: str) -> bool:
+    def validate_audio_file(self, file_path: str) -> Tuple[bool, Optional[str]]:
         """
         Validate audio file format and properties.
         
@@ -53,25 +53,24 @@ class AudioService:
             file_path: Path to audio file
             
         Returns:
-            True if valid, False otherwise
-            
-        Raises:
-            ValidationError: If file is invalid
+            Tuple of (is_valid, error_message)
         """
         try:
             # Check if file exists
             if not os.path.exists(file_path):
-                raise ValidationError(f"File not found: {file_path}")
+                return False, f"File not found: {file_path}"
             
             # Check file size
             file_size = os.path.getsize(file_path)
+            if file_size == 0:
+                return False, "Audio file is empty"
             if file_size > self.max_size:
-                raise ValidationError(f"File too large: {file_size} bytes (max: {self.max_size})")
+                return False, f"File too large: {file_size} bytes (max: {self.max_size})"
             
             # Check file extension
             file_ext = Path(file_path).suffix.lower()
             if file_ext not in self.supported_formats:
-                raise ValidationError(f"Unsupported format: {file_ext}")
+                return False, f"Unsupported format: {file_ext}"
             
             # Try to load audio with conversion if needed
             converted_path = None
@@ -86,28 +85,26 @@ class AudioService:
                     print(f"Successfully converted and loaded audio")
                 except Exception as convert_error:
                     print(f"Audio conversion also failed: {str(convert_error)}")
-                    raise load_error
+                    return False, f"Failed to load audio: {str(load_error)}"
             
             # Check duration
             duration = librosa.get_duration(y=y, sr=sr)
             if duration < 0.5 or duration > self.max_duration:
-                raise ValidationError(f"Invalid duration: {duration}s (must be 0.5-{self.max_duration}s)")
+                return False, f"Invalid duration: {duration}s (must be 0.5-{self.max_duration}s)"
             
             # Clean up converted file if it was created
             if converted_path and os.path.exists(converted_path):
                 os.unlink(converted_path)
             
-            return True
+            return True, None
             
         except Exception as e:
-            if isinstance(e, ValidationError):
-                raise
             print(f"Audio validation error: {str(e)}")
             print(f"File path: {file_path}")
             print(f"File exists: {os.path.exists(file_path)}")
             if os.path.exists(file_path):
                 print(f"File size: {os.path.getsize(file_path)} bytes")
-            raise ValidationError(f"Audio validation failed: {str(e)}")
+            return False, f"Audio validation failed: {str(e)}"
     
     def preprocess_audio(self, audio_path: str) -> np.ndarray:
         """
@@ -124,7 +121,9 @@ class AudioService:
         """
         try:
             # Validate file first
-            self.validate_audio_file(audio_path)
+            is_valid, error_msg = self.validate_audio_file(audio_path)
+            if not is_valid:
+                raise AudioProcessingError(error_msg)
             
             # Load audio file with conversion if needed
             converted_path = None

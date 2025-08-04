@@ -4,6 +4,7 @@ API routes for Meow2Text application.
 import os
 import tempfile
 import shutil
+import logging
 from typing import List
 from fastapi import APIRouter, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
@@ -21,8 +22,9 @@ from backend.src.services.audio_service import audio_service
 from backend.src.services.classification_service import classification_service
 from backend.src.services.translation_service import translation_service
 
-# Create router
+# Create router and logger
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/", response_model=dict)
@@ -60,6 +62,10 @@ async def classify_audio(file: UploadFile = File(...)):
         HTTPException: If classification fails
     """
     try:
+        # Check if file is provided
+        if not file or not file.filename:
+            raise ValidationError("No audio file provided")
+        
         # Validate file type - be more flexible with audio content types
         valid_audio_types = [
             'audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/mp4', 
@@ -129,6 +135,10 @@ async def translate_audio(
         HTTPException: If translation fails
     """
     try:
+        # Check if file is provided
+        if not file or not file.filename:
+            raise ValidationError("No audio file provided")
+        
         # Validate file type - be more flexible with audio content types
         valid_audio_types = [
             'audio/wav', 'audio/mp3', 'audio/mpeg', 'audio/mp4', 
@@ -166,30 +176,28 @@ async def translate_audio(
             temp_path = temp_file.name
         
         try:
-            # Preprocess audio
             processed_audio = audio_service.preprocess_audio(temp_path)
-            
-            # Classify meow
+            audio_features = audio_service.extract_audio_features(temp_path)
             classification = classification_service.classify_meow(processed_audio)
+            classification["actual_duration"] = audio_features["duration"]
             
-            # Translate with personality
+            # Log classification data
+            logger.info(f"=== CLASSIFICATION DATA ===")
+            logger.info(f"Classification result: {classification}")
+            logger.info(f"Audio features: {audio_features}")
+            logger.info(f"Personality: {personality}")
+            logger.info(f"============================")
+
             translation = translation_service.translate_meow(classification, personality)
-            
-            return TranslationResponse(
-                classification=ClassificationResult(**classification),
-                translation=translation,
-                personality=personality
-            )
-            
+            return TranslationResponse(classification=ClassificationResult(**classification), translation=translation, personality=personality)
         finally:
-            # Clean up temp file
             os.unlink(temp_path)
             
     except Meow2TextError as e:
-        print(f"Meow2Text Error: {str(e)}")
+        logger.error(f"Meow2Text Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Unexpected Error: {str(e)}")
+        logger.error(f"Unexpected Error: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
